@@ -2,6 +2,7 @@
   "name": "bad",
   "version": "0.5.0",
   "description": "A command line tool to execute a command multiple times for a given array.",
+  "preferGlobal": true,
   "bin": {
     "bad": "./bin/bad.js"
   },
@@ -10,7 +11,7 @@
     "mocha": "mocha -w",
     "cover": "istanbul cover ./node_modules/mocha/bin/_mocha",
     "report": "istanbul report cobertura",
-    "test": "npm run-script jshint && npm run-script cover && npm run-script report"
+    "test": "npm run-script jshint && mocha"
   },
   "repository": {
     "type": "git",
