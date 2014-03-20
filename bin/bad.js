@@ -14,10 +14,14 @@ var helpers = require('../lib/helpers');
 
 
 var splitSpaceDelimted = helpers.splitSpaceDelimted;
+var isSilent = false;
+var isVerbose = false;
 
 program
   .version(require('../package.json').version)
   .usage('--exec my-command --for "1 2 3 4"')
+  .option('--verbose', 'Show the output verbosley.')
+  .option('-s, --silent', 'Show as little as possible.')
   .option('--exec <s>', 'The command to run.  This is passed directly to spawn.')
   .option('--for <s>'
     , 'A white space separated list of arguments.'
@@ -27,6 +31,9 @@ program
 program.parse(process.argv);
 
 if(!program.exec || !program.for)program.help();
+
+isSilent = !!program.silent;
+isVerbose = !isSilent && !!program.verbose;
 
 batch = new Callback(function(done){
   var tasks = [].slice.call(arguments);
@@ -50,10 +57,10 @@ batch = new Callback(function(done){
     function(cb){
       async.parallel(stdout, function(err, stdout){
         if(err)return cb(err);
-        if(stdout.filter(function(a){return !!a;}).length){
-          console.log('=========STDOUT==========');
+        if(!isSilent && stdout.filter(function(a){return !!a;}).length){
+          if(isVerbose)console.log('=========STDOUT==========');
           program.for.forEach(function(arg, index){
-            console.log('This was the stdout of "'+arg+'":');
+            if(isVerbose)console.log('This was the stdout of "'+arg+'":');
             console.log(stdout[index]);
           });
         }
@@ -63,10 +70,10 @@ batch = new Callback(function(done){
     function(cb){
       async.parallel(stderr, function(err, stderr){
         if(err)return cb(err);
-        if(stderr.filter(function(a){return !!a;}).length){
-          console.log('=========STDERR==========');
+        if(!isSilent && stderr.filter(function(a){return !!a;}).length){
+          if(isVerbose)console.log('=========STDERR==========');
           program.for.forEach(function(arg, index){
-            console.log('This was the stderr of "'+arg+'":');
+            if(isVerbose)console.log('This was the stderr of "'+arg+'":');
             console.log(stderr[index]);
           });
         }

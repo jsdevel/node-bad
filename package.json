@@ -1,6 +1,6 @@
 {
   "name": "bad",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "A command line tool to execute a command multiple times for a given array.",
   "preferGlobal": true,
   "bin": {
