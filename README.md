@@ -2,7 +2,7 @@ bad
 ======================
 [![Build Status](https://travis-ci.org/jsdevel/node-bad.png)](https://travis-ci.org/jsdevel/node-bad)
 
-`bad` is a CLI tool that allows you to execute a script multiple times concurrently
+`bad` is a CLI tool that allows you to execute a command multiple times concurrently
 for a given number of subjects.
 
 ##Example
