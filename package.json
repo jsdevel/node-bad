@@ -1,0 +1,46 @@
+{
+  "name": "bad",
+  "version": "0.5.0",
+  "description": "A command line tool to execute a command multiple times for a given array.",
+  "bin": {
+    "bad": "./bin/bad.js"
+  },
+  "scripts": {
+    "jshint": "jshint lib && jshint --config .jshintrc-test test",
+    "mocha": "mocha -w",
+    "cover": "istanbul cover ./node_modules/mocha/bin/_mocha",
+    "report": "istanbul report cobertura",
+    "test": "npm run-script jshint && npm run-script cover && npm run-script report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jsdevel/node-bad.git"
+  },
+  "keywords": [
+    "command",
+    "batch",
+    "cli",
+    "tty",
+    "tool",
+    "multiple",
+    "processes"
+  ],
+  "author": "Joseph Spencer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jsdevel/node-bad/issues"
+  },
+  "homepage": "https://github.com/jsdevel/node-bad",
+  "devDependencies": {
+    "should": "~3.1.4",
+    "jshint": "~2.4.4",
+    "mocha": "~1.18.2",
+    "kid_process": "~0.5.4"
+  },
+  "dependencies": {
+    "concurrency": "~0.1.4",
+    "commander": "~2.1.0",
+    "async": "~0.2.10",
+    "once": "~1.3.0"
+  }
+}
