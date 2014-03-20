@@ -20,12 +20,12 @@ var isVerbose = false;
 program
   .version(require('../package.json').version)
   .usage('--exec my-command --for "1 2 3 4"')
-  .option('--verbose', 'Show the output verbosley.')
-  .option('-s, --silent', 'Show as little as possible.')
-  .option('--exec <command>', 'The command to run.  This is passed directly to spawn.')
-  .option('--to-env <varname>', 'An env var representing the subject for the command.')
+  .option('--verbose', 'show the output verbosley.')
+  .option('-s, --silent', 'show as little as possible.')
+  .option('--exec <command>', 'the command to run.  This is passed directly to spawn.')
+  .option('--to-env <varname>', 'an env var representing the subject for the command.')
   .option('--for <subjects>'
-    , 'A white space separated list of arguments.'
+    , 'a white space separated list of arguments.'
     + 'Each arg is passed to the command as it\'s first arg.'
     , splitSpaceDelimted);
 
