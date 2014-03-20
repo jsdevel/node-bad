@@ -6,6 +6,7 @@ describe('bad', function(){
   var bad = path.resolve(__dirname, '..', 'bin', 'bad.js');
   var fixtures = path.resolve(__dirname, '..', 'test-fixtures');
   var printSubject = path.resolve(fixtures, 'print-subject.bash');
+  var printEnv = path.resolve(fixtures, 'print-env-FOO.bash');
   var writeToStdErr = path.resolve(fixtures, 'write-to-stderr.bash');
   var abnormalExit = path.resolve(fixtures, 'abnormal-exit.bash');
 
@@ -37,6 +38,18 @@ describe('bad', function(){
     kid.play(bad, ['--exec', 'aaaaaaaaa', '--for', '2 3 4 5'])
     .on('terminated', function(code){
       code.should.be.above(0);
+      done();
+    });
+  });
+
+  it('prints out env vars', function(done){
+    var process = kid
+    .play(bad, ['--exec', printEnv, '--for', '2 3 4 5', '--to-env', 'FOO'])
+    .on('terminated', function(code){
+      console.log(Object.prototype.toString.call(process.stdout));
+      /*process.stdout.on('data', function(data){
+        console.log(data);
+      });*/
       done();
     });
   });

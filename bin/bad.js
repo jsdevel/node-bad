@@ -22,8 +22,9 @@ program
   .usage('--exec my-command --for "1 2 3 4"')
   .option('--verbose', 'Show the output verbosley.')
   .option('-s, --silent', 'Show as little as possible.')
-  .option('--exec <s>', 'The command to run.  This is passed directly to spawn.')
-  .option('--for <s>'
+  .option('--exec <command>', 'The command to run.  This is passed directly to spawn.')
+  .option('--to-env <varname>', 'An env var representing the subject for the command.')
+  .option('--for <subjects>'
     , 'A white space separated list of arguments.'
     + 'Each arg is passed to the command as it\'s first arg.'
     , splitSpaceDelimted);
@@ -54,32 +55,8 @@ batch = new Callback(function(done){
   });
 
   async.parallel([
-    function(cb){
-      async.parallel(stdout, function(err, stdout){
-        if(err)return cb(err);
-        if(!isSilent && stdout.filter(function(a){return !!a;}).length){
-          if(isVerbose)console.log('=========STDOUT==========');
-          program.for.forEach(function(arg, index){
-            if(isVerbose)console.log('This was the stdout of "'+arg+'":');
-            console.log(stdout[index]);
-          });
-        }
-        cb();
-      });
-    },
-    function(cb){
-      async.parallel(stderr, function(err, stderr){
-        if(err)return cb(err);
-        if(!isSilent && stderr.filter(function(a){return !!a;}).length){
-          if(isVerbose)console.log('=========STDERR==========');
-          program.for.forEach(function(arg, index){
-            if(isVerbose)console.log('This was the stderr of "'+arg+'":');
-            console.log(stderr[index]);
-          });
-        }
-        cb();
-      });
-    }
+    getOutput.bind(null, stdout, 'stdout'),
+    getOutput.bind(null, stderr, 'stderr')
   ], function(err){
     handleError(err);
     if(hasError){
@@ -93,10 +70,23 @@ batch = new Callback(function(done){
 });
 
 program.for.forEach(function(subject){
-  batch.follows(new Process({
+  var config = {
     command: program.exec,
     args:[subject]
-  }));
+  };
+  var env;
+  var newEnv;
+
+  if(program.toEnv){
+    env = {};
+    env[program.toEnv] = subject;
+    newEnv = merge(process.env, env);
+    config.options = {
+      env: newEnv
+    };
+  }
+
+  batch.follows(new Process(config));
 });
 
 batch.run();
@@ -119,9 +109,38 @@ function captureStream(arr, prop, proc){
   arr.push(proc[prop]);
 }
 
+function getOutput(tasks, title, cb){
+  var upper = title.toUpperCase();
+  async.parallel(tasks, function(err, results){
+    if(err)return cb(err);
+    if(!isSilent && results.filter(function(a){return !!a;}).length){
+      if(isVerbose)console.log('========='+upper+'==========');
+      program.for.forEach(function(arg, index){
+        if(isVerbose)console.log('This was the '+title+' of "'+arg+'":');
+        console.log(results[index]);
+      });
+    }
+    cb();
+  });
+}
+
 function handleError(err){
   if(err){
     console.log(err);
     process.exit(1);
   }
+}
+
+function merge(old, additional){
+  var prop;
+  var proposed = {};
+
+  for(prop in old){
+    proposed[prop] = old[prop];
+  }
+
+  for(prop in additional){
+    proposed[prop] = additional[prop];
+  }
+  return proposed;
 }
