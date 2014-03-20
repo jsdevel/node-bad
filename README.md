@@ -8,7 +8,7 @@ for a given number of subjects.
 ##Usage
 ````
 
-  Usage: bad.js --exec my-command --for "1 2 3 4"
+  Usage: bad --exec my-command --for "1 2 3 4"
 
     Options:
 
