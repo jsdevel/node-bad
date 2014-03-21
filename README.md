@@ -5,12 +5,12 @@ bad
 `bad` is a command line tool that allows you to execute a command multiple times
 concurrently for a given number of subjects.
 
-`bad` is general enough for just about anything that requires parallel execution,
-and it's also *bad* enough to accomplish it with ease!
+It is general enough for just about anything that requires parallel execution,
+and it's *bad* enough to accomplish it with ease!
 
 ##Usage
 ````
-Usage: bad --exec my-command --for "1 2 3 4"
+Usage: bad --exec curl --for "google.com github.com" --argv "-s"
 
 Options:
 
@@ -27,7 +27,7 @@ Options:
 ````
 
 ##Example
-This would silently curn the given urls concurrently:
+This would silently curl the given urls concurrently:
 ````
 bad --exec curl --argv '-s' --for "google.com linkedin.com npmjs.org"
 ````

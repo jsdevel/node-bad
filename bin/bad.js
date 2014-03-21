@@ -40,7 +40,7 @@ program
     'bad is a command line tool that allows you to execute a command multiple '
     +'times concurrently for a given number of subjects.'
   )
-  .usage('--exec my-command --for "1 2 3 4"')
+  .usage('--exec curl --for "google.com linkedin.com" --argv "-s"')
   .option('--verbose', 'show the output verbosley.')
   .option('-s, --silent', 'show as little as possible.')
   .option('--exec <command>', 'the command to run.  This is passed directly to spawn.')
