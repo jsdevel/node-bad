@@ -34,7 +34,7 @@ describe('bad', function(){
     });
   });
 
-  it('returns an error if an error occurs', function(done){
+  it('returns an error if an error if command does not exist', function(done){
     kid.play(bad, ['--exec', 'aaaaaaaaa', '--for', '2 3 4 5'])
     .on('terminated', function(code){
       code.should.be.above(0);

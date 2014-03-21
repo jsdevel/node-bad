@@ -2,18 +2,25 @@
 
 'use strict';
 
+//dependencies
 var async = require('async');
-var once = require('once');
 var program = require('commander');
 var concurrency = require('concurrency');
 var Process = concurrency.Process;
 var Callback = concurrency.Callback;
 
 var batch;
+
+//helpers
 var helpers = require('../lib/helpers');
-
-
 var splitSpaceDelimted = helpers.splitSpaceDelimted;
+var captureStream = helpers.captureStream;
+var dump = helpers.dump;
+var getOutput = helpers.getOutput;
+var handleError = helpers.handleError;
+var merge = helpers.merge;
+
+//defaults
 var isSilent = false;
 var isVerbose = false;
 
@@ -55,8 +62,8 @@ batch = new Callback(function(done){
   });
 
   async.parallel([
-    getOutput.bind(null, stdout, 'stdout'),
-    getOutput.bind(null, stderr, 'stderr')
+    getOutput.bind(null, program, stdout, 'stdout'),
+    getOutput.bind(null, program, stderr, 'stderr')
   ], function(err){
     handleError(err);
     if(hasError){
@@ -90,57 +97,3 @@ program.for.forEach(function(subject){
 });
 
 batch.run();
-
-function dump(stream, cb){
-  var out = [];
-  cb = once(cb);
-
-  stream
-  .on('data', function(data){
-    out.push(''+data);
-  })
-  .on('error', cb)
-  .on('close', function(){
-    cb(null, out.join(''));
-  });
-}
-
-function captureStream(arr, prop, proc){
-  arr.push(proc[prop]);
-}
-
-function getOutput(tasks, title, cb){
-  var upper = title.toUpperCase();
-  async.parallel(tasks, function(err, results){
-    if(err)return cb(err);
-    if(!isSilent && results.filter(function(a){return !!a;}).length){
-      if(isVerbose)console.log('========='+upper+'==========');
-      program.for.forEach(function(arg, index){
-        if(isVerbose)console.log('This was the '+title+' of "'+arg+'":');
-        console.log(results[index]);
-      });
-    }
-    cb();
-  });
-}
-
-function handleError(err){
-  if(err){
-    console.log(err);
-    process.exit(1);
-  }
-}
-
-function merge(old, additional){
-  var prop;
-  var proposed = {};
-
-  for(prop in old){
-    proposed[prop] = old[prop];
-  }
-
-  for(prop in additional){
-    proposed[prop] = additional[prop];
-  }
-  return proposed;
-}
