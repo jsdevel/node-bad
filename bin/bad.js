@@ -17,13 +17,17 @@ var captureStream = helpers.captureStream;
 var dump = helpers.dump;
 var fileExistsSync = helpers.fileExistsSync;
 var getOutput = helpers.getOutput;
-var handleError = helpers.handleError;
 var merge = helpers.merge;
 var splitSpaceDelimted = helpers.splitSpaceDelimted;
 
 //defaults
 var isSilent = false;
 var isVerbose = false;
+
+//exit codes
+var MISSING_OPTION=1;
+var ERROR_WHILE_EXECUTING=2;
+var TASK_EXITED_ABNORMALLY=3;
 
 program
   .version(require('../package.json').version)
@@ -39,7 +43,13 @@ program
 
 program.parse(process.argv);
 
-if(!program.exec || !program.for)program.help();
+if(!program.exec || !program.for){
+  if(!program.exec)console.error('--exec is required!');
+  if(!program.for)console.error('--for is required!');
+  
+  program.help();
+  process.exit(MISSING_OPTION);
+}
 
 isSilent = !!program.silent;
 isVerbose = !isSilent && !!program.verbose;
@@ -66,13 +76,18 @@ batch = new Callback(function(done){
     getOutput.bind(null, program, stdout, 'stdout'),
     getOutput.bind(null, program, stderr, 'stderr')
   ], function(err){
-    handleError(err);
+    if(err){
+      console.error('An error occurred while executing the tasks:');
+      console.error(err);
+      process.exit(ERROR_WHILE_EXECUTING);
+    }
+
     if(hasError){
       console.log('The following subjects exited abnormally:');
       tasks.forEach(function(task, index){
         if(task.exitCode)console.log(program.for[index]);
       });
-      process.exit(3);
+      process.exit(TASK_EXITED_ABNORMALLY);
     }
   });
 });
