@@ -13,12 +13,13 @@ var batch;
 
 //helpers
 var helpers = require('../lib/helpers');
-var splitSpaceDelimted = helpers.splitSpaceDelimted;
 var captureStream = helpers.captureStream;
 var dump = helpers.dump;
+var fileExistsSync = helpers.fileExistsSync;
 var getOutput = helpers.getOutput;
 var handleError = helpers.handleError;
 var merge = helpers.merge;
+var splitSpaceDelimted = helpers.splitSpaceDelimted;
 
 //defaults
 var isSilent = false;
