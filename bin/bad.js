@@ -4,8 +4,8 @@
 
 //dependencies
 var async = require('async');
-var program = require('commander');
 var concurrency = require('concurrency');
+var program = require('commander');
 var Process = concurrency.Process;
 var Callback = concurrency.Callback;
 
@@ -13,14 +13,17 @@ var batch;
 
 //helpers
 var helpers = require('../lib/helpers');
+var absPathOf = helpers.absPathOf;
 var captureStream = helpers.captureStream;
 var dump = helpers.dump;
+var commandInPath = helpers.commandInPath;
 var fileExistsSync = helpers.fileExistsSync;
 var getOutput = helpers.getOutput;
 var merge = helpers.merge;
 var splitSpaceDelimted = helpers.splitSpaceDelimted;
 
 //defaults
+var execArg = null;
 var isSilent = false;
 var isVerbose = false;
 
@@ -28,6 +31,7 @@ var isVerbose = false;
 var MISSING_OPTION=1;
 var ERROR_WHILE_EXECUTING=2;
 var TASK_EXITED_ABNORMALLY=3;
+var EXEC_NOT_FOUND=4;
 
 program
   .version(require('../package.json').version)
@@ -50,6 +54,14 @@ if(!program.exec || !program.for){
   program.help();
   process.exit(MISSING_OPTION);
 }
+
+if(!fileExistsSync(program.exec) && !commandInPath(program.exec)){
+  console.error('The --exec arg must refer to a command in your PATH or a file.');
+  process.exit(EXEC_NOT_FOUND);
+}
+
+if(fileExistsSync(program.exec))execArg = absPathOf(program.exec);
+else execArg = program.exec;
 
 isSilent = !!program.silent;
 isVerbose = !isSilent && !!program.verbose;
@@ -94,7 +106,7 @@ batch = new Callback(function(done){
 
 program.for.forEach(function(subject){
   var config = {
-    command: program.exec,
+    command: execArg,
     args:[subject]
   };
   var env;
