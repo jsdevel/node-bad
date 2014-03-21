@@ -5,6 +5,8 @@ describe('bad', function(){
   var path = require('path');
   var bad = path.resolve(__dirname, '..', 'bin', 'bad.js');
   var fixtures = path.resolve(__dirname, '..', 'test-fixtures');
+  var printArgvWithEnv = path.resolve(fixtures, 'print-argv-with-env.bash');
+  var printArgvWithoutEnv = path.resolve(fixtures, 'print-argv-without-env.bash');
   var printSubject = path.resolve(fixtures, 'print-subject.bash');
   var printEnv = path.resolve(fixtures, 'print-env-FOO.bash');
   var writeToStdErr = path.resolve(fixtures, 'write-to-stderr.bash');
@@ -47,11 +49,40 @@ describe('bad', function(){
     .play(bad, ['--exec', printEnv, '--for', '2 3 4 5', '--to-env', 'FOO'])
     .on('terminated', function(code){
       console.log(Object.prototype.toString.call(process.stdout));
-      /*process.stdout.on('data', function(data){
-        console.log(data);
-      });*/
       done();
     });
+  });
+
+  describe('--argv', function(){
+    describe('with --to-env', function(){
+      it('passes subject as env var but not as argv', function(done){
+        kid.play(bad, [
+          '--exec', printArgvWithEnv,
+          '--for', '3',
+          '--argv', '1 2',
+          '--to-env', 'FOO'
+        ])
+        .on('terminated', function(code){
+          code.should.equal(0);
+          done();
+        });
+      });
+    });
+
+    describe('without --to-env', function(){
+      it('passes subject as last element in argv', function(done){
+        kid.play(bad, [
+          '--exec', printArgvWithoutEnv,
+          '--for', '3',
+          '--argv', '1 2'
+        ])
+        .on('terminated', function(code){
+          code.should.equal(0);
+          done();
+        });
+      });
+    });
+
   });
 
 });

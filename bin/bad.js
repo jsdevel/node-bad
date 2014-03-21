@@ -23,6 +23,7 @@ var merge = helpers.merge;
 var splitSpaceDelimted = helpers.splitSpaceDelimted;
 
 //defaults
+var argv = [];
 var execArg = null;
 var isSilent = false;
 var isVerbose = false;
@@ -39,7 +40,12 @@ program
   .option('--verbose', 'show the output verbosley.')
   .option('-s, --silent', 'show as little as possible.')
   .option('--exec <command>', 'the command to run.  This is passed directly to spawn.')
-  .option('--to-env <varname>', 'an env var representing the subject for the command.')
+  .option('--argv [args]'
+    , 'whitespace separated arguments to pass to the command.'
+    + 'Subject matter is added to the end of the list when --to-env is not used.'
+    , splitSpaceDelimted
+  )
+  .option('--to-env [varname]', 'an env var representing the subject for the command.')
   .option('--for <subjects>'
     , 'a white space separated list of arguments.'
     + 'Each arg is passed to the command as it\'s first arg.'
@@ -53,6 +59,10 @@ if(!program.exec || !program.for){
   
   program.help();
   process.exit(MISSING_OPTION);
+}
+
+if(program.argv){
+  argv = program.argv;
 }
 
 if(!fileExistsSync(program.exec) && !commandInPath(program.exec)){
@@ -107,7 +117,7 @@ batch = new Callback(function(done){
 program.for.forEach(function(subject){
   var config = {
     command: execArg,
-    args:[subject]
+    args:[].concat(argv)
   };
   var env;
   var newEnv;
@@ -119,6 +129,8 @@ program.for.forEach(function(subject){
     config.options = {
       env: newEnv
     };
+  } else {
+    config.args.push(subject);
   }
 
   batch.follows(new Process(config));
