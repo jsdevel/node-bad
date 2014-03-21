@@ -36,20 +36,24 @@ var EXEC_NOT_FOUND=4;
 
 program
   .version(require('../package.json').version)
+  .description(
+    'bad is a command line tool that allows you to execute a command multiple '
+    +'times concurrently for a given number of subjects.'
+  )
   .usage('--exec my-command --for "1 2 3 4"')
   .option('--verbose', 'show the output verbosley.')
   .option('-s, --silent', 'show as little as possible.')
   .option('--exec <command>', 'the command to run.  This is passed directly to spawn.')
-  .option('--argv [args]'
-    , 'whitespace separated arguments to pass to the command.'
-    + 'Subject matter is added to the end of the list when --to-env is not used.'
+  .option('--for <subjects>'
+    , 'a whitespace separated list of subjects.'
+    + '  Each subject is appended to argv except when --to-env is given.'
     , splitSpaceDelimted
   )
-  .option('--to-env [varname]', 'an env var representing the subject for the command.')
-  .option('--for <subjects>'
-    , 'a white space separated list of arguments.'
-    + 'Each arg is passed to the command as it\'s first arg.'
-    , splitSpaceDelimted);
+  .option('--argv [args]'
+    , 'a whitespace separated list of arguments to pass to the command.'
+    , splitSpaceDelimted
+  )
+  .option('--to-env [varname]', 'an env var representing the subject for the command.');
 
 program.parse(process.argv);
 

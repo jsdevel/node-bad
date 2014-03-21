@@ -1,7 +1,7 @@
 {
   "name": "bad",
-  "version": "0.8.3",
-  "description": "A command line tool to execute a command multiple times for a given array.",
+  "version": "0.8.4",
+  "description": "A CLI tool to execute a command concurrently for a given number of subjects.",
   "preferGlobal": true,
   "bin": {
     "bad": "./bin/bad.js"
