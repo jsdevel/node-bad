@@ -117,7 +117,34 @@ describe('bad', function(){
         });
       });
     });
-
   });
 
+  describe('--debug', function(){
+    it('outputs all the arguments', function(done){
+      exec([
+        bad,
+        '--debug',
+        '--silent',
+        '--verbose',
+        '--to-env', 'FOO',
+        '--argv', '"boo foo doo"',
+        '--exec', printSubject,
+        '--for', '"3 4"',
+        '--debug'
+      ].join(' '),function(err, out, stderr){
+        assert(!err);
+        out.should.equal([
+          'Debug info: ',
+          '--silent: true',
+          '--verbose: true',
+          '--to-env: FOO',
+          '--argv: boo,foo,doo',
+          '--exec: '+printSubject,
+          '--for: 3,4',
+          ''
+        ].join('\n'));
+        done();
+      });
+    });
+  });
 });

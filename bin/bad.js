@@ -25,6 +25,7 @@ var splitSpaceDelimted = helpers.splitSpaceDelimted;
 //defaults
 var argv = [];
 var execArg = null;
+var isDebug = false;
 
 //exit codes
 var MISSING_OPTION=1;
@@ -39,6 +40,7 @@ program
     +'times concurrently for a given number of subjects.'
   )
   .usage('--exec curl --for "google.com linkedin.com" --argv "-s"')
+  .option('--debug', 'print information for debugging')
   .option('--verbose', 'show the output verbosley.')
   .option('-s, --silent', 'show as little as possible.')
   .option('--exec <command>', 'the command to run.  This is passed directly to spawn.')
@@ -55,10 +57,11 @@ program
 
 program.parse(process.argv);
 
+//Handle Options
 if(!program.exec || !program.for){
   if(!program.exec)console.error('--exec is required!');
   if(!program.for)console.error('--for is required!');
-  
+
   program.help();
   process.exit(MISSING_OPTION);
 }
@@ -74,6 +77,20 @@ if(!fileExistsSync(program.exec) && !commandInPath(program.exec)){
 
 if(fileExistsSync(program.exec))execArg = absPathOf(program.exec);
 else execArg = program.exec;
+
+isDebug = !!program.debug;
+
+if(isDebug){
+  console.log([
+    'Debug info: ',
+    '--silent: '+program.silent,
+    '--verbose: '+program.verbose,
+    '--to-env: '+program.toEnv,
+    '--argv: '+program.argv,
+    '--exec: '+program.exec,
+    '--for: '+program.for
+  ].join('\n'));
+}
 
 batch = new Callback(function(done){
   var tasks = [].slice.call(arguments);
