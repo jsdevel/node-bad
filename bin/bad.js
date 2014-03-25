@@ -4,21 +4,16 @@
 
 //dependencies
 var async = require('async');
-var concurrency = require('concurrency');
 var program = require('commander');
-var Process = concurrency.Process;
-var Callback = concurrency.Callback;
 
 var batch;
 
 //helpers
 var helpers = require('../lib/helpers');
 var absPathOf = helpers.absPathOf;
-var captureStream = helpers.captureStream;
-var dump = helpers.dump;
 var commandInPath = helpers.commandInPath;
+var createExecTask = helpers.createExecTask;
 var fileExistsSync = helpers.fileExistsSync;
-var getOutput = helpers.getOutput;
 var merge = helpers.merge;
 var splitSpaceDelimted = helpers.splitSpaceDelimted;
 
@@ -32,6 +27,9 @@ var MISSING_OPTION=1;
 var ERROR_WHILE_EXECUTING=2;
 var TASK_EXITED_ABNORMALLY=3;
 var EXEC_NOT_FOUND=4;
+
+//misc
+var tasks = [];
 
 program
   .version(require('../package.json').version)
@@ -92,64 +90,47 @@ if(isDebug){
   ].join('\n'));
 }
 
-batch = new Callback(function(done){
-  var tasks = [].slice.call(arguments);
-  var stdout = [];
-  var stderr = [];
-  var hasError;
-  done = tasks.shift();
-  hasError = !!tasks.filter(function(v){return !!v.exitCode;}).length;
-
-  tasks.forEach(captureStream.bind(null, stdout, 'stdout'));
-  tasks.forEach(captureStream.bind(null, stderr, 'stderr'));
-
-  stdout = stdout.map(function(stream){
-    return dump.bind(null, stream);
-  });
-  stderr = stderr.map(function(stream){
-    return dump.bind(null, stream);
-  });
-
-  async.parallel([
-    getOutput.bind(null, program, stdout, 'stdout'),
-    getOutput.bind(null, program, stderr, 'stderr')
-  ], function(err){
-    if(err){
-      console.error('An error occurred while executing the tasks:');
-      console.error(err);
-      process.exit(ERROR_WHILE_EXECUTING);
-    }
-
-    if(hasError){
-      console.log('The following subjects exited abnormally:');
-      tasks.forEach(function(task, index){
-        if(task.exitCode)console.log(program.for[index]);
-      });
-      process.exit(TASK_EXITED_ABNORMALLY);
-    }
-  });
+program.for.forEach(function(subject){
+  tasks.push(createExecTask.bind(null, execArg, subject, program));
 });
 
-program.for.forEach(function(subject){
-  var config = {
-    command: execArg,
-    args:[].concat(argv)
-  };
-  var env;
-  var newEnv;
+async.parallel(tasks, function(err, results){
+  var hasStdout = !!results.filter(by('stdout'));
+  var hasStderr = !!results.filter(by('stderr'));
 
-  if(program.toEnv){
-    env = {};
-    env[program.toEnv] = subject;
-    newEnv = merge(process.env, env);
-    config.options = {
-      env: newEnv
-    };
-  } else {
-    config.args.push(subject);
+  if(hasStdout && !program.silent){
+    if(program.verbose)console.log('========STDOUT========');
+    results.filter(by('stdout')).forEach(function(result){
+      console.log('For '+result.subject+':');
+      console.log(result.stdout);
+    });
   }
 
-  batch.follows(new Process(config));
+  if(hasStderr && !program.silent){
+    if(program.verbose)console.error('========STDERR========');
+    results.filter(by('stderr')).forEach(function(result){
+      console.error('For '+result.subject+':');
+      console.error(result.stderr);
+    });
+  }
+
+  if(err){
+    console.error('The following command[s] exited abnormally:');
+    results.filter(by('err')).forEach(function(result){
+      console.error(result.subject);
+    });
+    process.exit(ERROR_WHILE_EXECUTING);
+  }
 });
 
-batch.run();
+function by(prop){
+  return function(result){
+    return !!result[prop];
+  };
+}
+
+function to(prop){
+  return function(result){
+    return result[prop];
+  };
+}

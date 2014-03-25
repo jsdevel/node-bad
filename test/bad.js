@@ -2,7 +2,6 @@
 
 describe('bad', function(){
   var assert = require('assert');
-  var kid = require('kid_process');
   var exec = require('child_process').exec;
   var path = require('path');
   var bad = path.resolve(__dirname, '..', 'bin', 'bad.js');
@@ -23,7 +22,7 @@ describe('bad', function(){
     function(err, out, stderr){
       assert(!err);
       out.should.equal([
-        '2','3','4','5', ''
+        'For 2:\n2', 'For 3:\n3', 'For 4:\n4', 'For 5:\n5', ''
       ].join('\n\n'));
       done();
     });
@@ -31,29 +30,22 @@ describe('bad', function(){
 
   it('exits abnormally on bad exit codes', function(done){
     exec(bad+' --exec '+abnormalExit+' --for "2 3 4 5"', function(err, out, stderr){
-      out.should.equal([
-        'The following subjects exited abnormally:',
-        '2',
-        '3',
-        '4',
-        '5',
-        ''
-      ].join('\n'));
-      err.code.should.equal(3);
+      stderr.should.startWith('The following command[s] exited abnormally:');
+      err.code.should.equal(2);
       done();
     });
   });
 
   it('exits normally if stderr output exists', function(done){
     exec([bad,'--exec',writeToStdErr,'--for','"2 3 4 5"'].join(' '), function(err, out, stderr){
-      out.should.equal([
-        'error 2',
-        'error 3',
-        'error 4',
-        'error 5',
+      stderr.should.equal([
+        'For 2:\nerror 2',
+        'For 3:\nerror 3',
+        'For 4:\nerror 4',
+        'For 5:\nerror 5',
         ''
       ].join('\n\n'));
-      assert(!stderr);
+      assert(!out);
       assert(!err);
       done();
     });
@@ -76,10 +68,10 @@ describe('bad', function(){
     exec([bad, '--exec', printEnv, '--for', '"2 3 4 5"', '--to-env', 'FOO'].join(' '), function(err, out, stderr){
       assert(!err);
       out.should.equal([
-        'env var Foo: 2',
-        'env var Foo: 3',
-        'env var Foo: 4',
-        'env var Foo: 5',
+        'For 2:\nenv var Foo: 2',
+        'For 3:\nenv var Foo: 3',
+        'For 4:\nenv var Foo: 4',
+        'For 5:\nenv var Foo: 5',
         ''
       ].join('\n\n'));
       done();
