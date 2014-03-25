@@ -25,8 +25,6 @@ var splitSpaceDelimted = helpers.splitSpaceDelimted;
 //defaults
 var argv = [];
 var execArg = null;
-var isSilent = false;
-var isVerbose = false;
 
 //exit codes
 var MISSING_OPTION=1;
@@ -76,9 +74,6 @@ if(!fileExistsSync(program.exec) && !commandInPath(program.exec)){
 
 if(fileExistsSync(program.exec))execArg = absPathOf(program.exec);
 else execArg = program.exec;
-
-isSilent = !!program.silent;
-isVerbose = !isSilent && !!program.verbose;
 
 batch = new Callback(function(done){
   var tasks = [].slice.call(arguments);
