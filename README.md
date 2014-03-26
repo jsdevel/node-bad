@@ -10,18 +10,20 @@ and it's *bad* enough to accomplish it with ease!
 
 ##Usage
 ````
-Usage: bad --exec curl --for "google.com github.com" --argv "-s"
+Usage: bad.js --exec curl --for "google.com linkedin.com" --argv "-s"
 
 Options:
 
   -h, --help          output usage information
   -V, --version       output the version number
+  --debug             print information for debugging
   -s, --silent        show as little as possible.
   --exec <command>    the command to run.  This is passed directly to spawn.
   --for <subjects>    a whitespace separated list of subjects.
                       Each subject is appended to argv except when --to-env is given.
   --argv [args]       a whitespace separated list of arguments to pass to the command.
   --to-env [varname]  an env var representing the subject for the command.
+  --show-time         display time stats.
 
 ````
 

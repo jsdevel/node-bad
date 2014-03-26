@@ -32,6 +32,7 @@ var TASK_EXITED_ABNORMALLY=3;
 var EXEC_NOT_FOUND=4;
 
 //misc
+var startTime = Date.now();
 var tasks = [];
 
 program
@@ -53,7 +54,8 @@ program
     , 'a whitespace separated list of arguments to pass to the command.'
     , splitSpaceDelimted
   )
-  .option('--to-env [varname]', 'an env var representing the subject for the command.');
+  .option('--to-env [varname]', 'an env var representing the subject for the command.')
+  .option('--show-time', 'display time stats.');
 
 program.parse(process.argv);
 
@@ -99,6 +101,16 @@ program.for.forEach(function(subject){
 async.parallel(tasks, function(err, results){
   var hasStdout = !!results.filter(by('stdout')).length;
   var hasStderr = !!results.filter(by('stderr')).length;
+
+
+  if(program.showTime){
+    console.log(hr('time stats'));
+    results.forEach(function(result){
+      console.log('For '+result.subject+':');
+      console.log('  '+result.time+'ms');
+    });
+    console.log('Total Time:\n  '+(Date.now()-startTime)+'ms');
+  }
 
   if(hasStdout && (program.debug || !program.silent)){
     console.log(hr('stdout'));

@@ -126,6 +126,24 @@ describe('bad', function(){
     });
   });
 
+  describe('--show-time', function(){
+    it('outputs the time of each task', function(done){
+      exec([
+        bad,
+        '--show-time',
+        '--exec echo',
+        '--for', '"3 4"'
+      ].join(' '),function(err, out, stderr){
+        assert(!err);
+        out.should.match(/==============TIME\sSTATS===============\nFor\s3:\n\s\s\d+ms\nFor\s4:\n\s\s\d+ms\nTotal\sTime:\n\s\s\d+ms\n================STDOUT=================\nFor\s3:\n3\n\nFor\s4:\n4\n\n/);
+        stderr.should.equal('');
+        assert(!stderr);
+        done();
+      });
+
+    });
+  });
+
   describe('--debug', function(){
     it('outputs all the arguments', function(done){
       exec([
