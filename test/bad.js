@@ -21,6 +21,7 @@ describe('bad', function(){
     ].join(' '),
     function(err, out, stderr){
       assert(!err);
+      assert(!stderr);
       out.should.equal([
         'For 2:\n2', 'For 3:\n3', 'For 4:\n4', 'For 5:\n5', ''
       ].join('\n\n'));
@@ -30,6 +31,7 @@ describe('bad', function(){
 
   it('exits abnormally on bad exit codes', function(done){
     exec(bad+' --exec '+abnormalExit+' --for "2 3 4 5"', function(err, out, stderr){
+      assert(!out);
       stderr.should.startWith('The following command[s] exited abnormally:');
       err.code.should.equal(2);
       done();
@@ -38,6 +40,8 @@ describe('bad', function(){
 
   it('exits normally if stderr output exists', function(done){
     exec([bad,'--exec',writeToStdErr,'--for','"2 3 4 5"'].join(' '), function(err, out, stderr){
+      assert(!out);
+      assert(!err);
       stderr.should.equal([
         'For 2:\nerror 2',
         'For 3:\nerror 3',
@@ -45,8 +49,6 @@ describe('bad', function(){
         'For 5:\nerror 5',
         ''
       ].join('\n\n'));
-      assert(!out);
-      assert(!err);
       done();
     });
   });
@@ -58,6 +60,7 @@ describe('bad', function(){
       '--for', '"2 3 4 5"'
     ].join(' '),
     function(err, out, stderr){
+      assert(!out);
       stderr.should.equal('The --exec arg must refer to a command in your PATH or a file.\n');
       err.code.should.be.above(0);
       done();
@@ -90,6 +93,8 @@ describe('bad', function(){
         ].join(' '),
         function(err, out, stderr){
           assert(!err);
+          assert(!out);
+          assert(!stderr);
           done();
         });
       });
@@ -105,6 +110,8 @@ describe('bad', function(){
         ].join(' '),
         function(err, out, stderr){
           assert(!err);
+          assert(!out);
+          assert(!stderr);
           done();
         });
       });
@@ -135,6 +142,7 @@ describe('bad', function(){
           '--for: 3,4',
           ''
         ].join('\n'));
+        assert(!stderr);
         done();
       });
     });
