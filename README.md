@@ -10,7 +10,7 @@ and it's *bad* enough to accomplish it with ease!
 
 ##Usage
 ````
-Usage: bad.js --exec curl --for "google.com linkedin.com" --argv "-s"
+Usage: bad --exec curl --for "google.com linkedin.com" --argv "-s"
 
 Options:
 
