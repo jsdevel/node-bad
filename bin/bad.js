@@ -14,6 +14,7 @@ var absPathOf = helpers.absPathOf;
 var by = helpers.by;
 var commandInPath = helpers.commandInPath;
 var createExecTask = helpers.createExecTask;
+var createExecTaskContexts = helpers.createExecTaskContexts;
 var fileExistsSync = helpers.fileExistsSync;
 var hr = helpers.hr;
 var merge = helpers.merge;
@@ -46,15 +47,18 @@ program
   .option('-s, --silent', 'show as little as possible.')
   .option('--exec <command>', 'the command to run.  This is passed directly to spawn.')
   .option('--for <subjects>'
-    , 'a whitespace separated list of subjects.'
-    + '  Each subject is appended to argv except when --to-env is given.'
-    , splitSpaceDelimted
+    , 'a comma separated list of subject sets.'
+    + '  Each subject set is a whitespace separated list of subjects.'
+    + '  Subjects are appended to argv except when --to-env is given.'
   )
   .option('--argv [args]'
     , 'a whitespace separated list of arguments to pass to the command.'
     , splitSpaceDelimted
   )
-  .option('--to-env [varname]', 'an env var representing the subject for the command.')
+  .option('--to-env <varnames>'
+    , 'a comma separated list of varname sets.'
+    + '  Each varname set is a whitespace separated list of varnames.'
+    + '  Varnames are mapped to the corresponding subject.')
   .option('--show-time', 'display time stats.');
 
 program.parse(process.argv);
@@ -94,14 +98,13 @@ if(isDebug){
   ].join('\n'));
 }
 
-program.for.forEach(function(subject){
-  tasks.push(createExecTask.bind(null, execArg, subject, program));
+createExecTaskContexts(program).forEach(function(context){
+  tasks.push(createExecTask.bind(null, execArg, program.argv, context));
 });
 
 async.parallel(tasks, function(err, results){
   var hasStdout = !!results.filter(by('stdout')).length;
   var hasStderr = !!results.filter(by('stderr')).length;
-
 
   if(program.showTime){
     console.log(hr('time stats'));

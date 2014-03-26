@@ -14,16 +14,19 @@ Usage: bad.js --exec curl --for "google.com linkedin.com" --argv "-s"
 
 Options:
 
-  -h, --help          output usage information
-  -V, --version       output the version number
-  --debug             print information for debugging
-  -s, --silent        show as little as possible.
-  --exec <command>    the command to run.  This is passed directly to spawn.
-  --for <subjects>    a whitespace separated list of subjects.
-                      Each subject is appended to argv except when --to-env is given.
-  --argv [args]       a whitespace separated list of arguments to pass to the command.
-  --to-env [varname]  an env var representing the subject for the command.
-  --show-time         display time stats.
+  -h, --help           output usage information
+  -V, --version        output the version number
+  --debug              print information for debugging
+  -s, --silent         show as little as possible.
+  --exec <command>     the command to run.  This is passed directly to spawn.
+  --for <subjects>     a comma separated list of subject sets.
+                       Each subject set is a whitespace separated list of subjects.
+                       Subjects are appended to argv except when --to-env is given.
+  --argv [args]        a whitespace separated list of arguments to pass to the command.
+  --to-env <varnames>  a comma separated list of varname sets.
+                       Each varname set is a whitespace separated list of varnames.
+                       Varnames are mapped to the corresponding subject.
+  --show-time          display time stats.
 
 ````
 
@@ -31,4 +34,21 @@ Options:
 This would silently curl the given urls concurrently:
 ````
 bad --exec curl --argv '-s' --for "google.com linkedin.com npmjs.org"
+````
+
+##Advanced mapping
+You can map subjects to an environment variable using the `--to-env` flag.
+
+Consider this example:
+````
+bad --exec echo --for '1 2, 3 4 5, 6' --to-env 'FOO DOO, XOO, ZOO'
+
+....
+
+#FOO set to 1
+#DOO set to 2
+#XOO set to 3
+#XOO set to 4
+#XOO set to 5
+#ZOO set to 6
 ````

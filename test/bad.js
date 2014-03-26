@@ -6,12 +6,13 @@ describe('bad', function(){
   var path = require('path');
   var bad = path.resolve(__dirname, '..', 'bin', 'bad.js');
   var fixtures = path.resolve(__dirname, '..', 'test-fixtures');
+  var abnormalExit = path.resolve(fixtures, 'abnormal-exit.bash');
+  var multipleMapping = path.resolve(fixtures, 'multiple-mapping.bash');
   var printArgvWithEnv = path.resolve(fixtures, 'print-argv-with-env.bash');
   var printArgvWithoutEnv = path.resolve(fixtures, 'print-argv-without-env.bash');
   var printSubject = path.resolve(fixtures, 'print-subject.bash');
   var printEnv = path.resolve(fixtures, 'print-env-FOO.bash');
   var writeToStdErr = path.resolve(fixtures, 'write-to-stderr.bash');
-  var abnormalExit = path.resolve(fixtures, 'abnormal-exit.bash');
 
   it('exits normally on normal exit codes', function(done){
     exec([
@@ -164,7 +165,7 @@ describe('bad', function(){
           '--to-env: FOO',
           '--argv: boo,foo,doo',
           '--exec: '+printSubject,
-          '--for: 3,4',
+          '--for: 3 4',
           '================STDOUT=================',
           'For 3:\nboo\n',
           'For 4:\nboo\n',
@@ -172,6 +173,52 @@ describe('bad', function(){
         ].join('\n'));
         assert(!stderr);
         done();
+      });
+    });
+  });
+
+  describe('--to-env', function(){
+    describe('with multiple mapping', function(){
+      it('maps with one to one', function(done){
+        exec([
+          bad,
+          '--to-env', '"FOO, BOO"',
+          '--exec', multipleMapping,
+          '--for', '"3, 4"'
+        ].join(' '),function(err, out, stderr){
+          assert(!err);
+          out.should.equal([
+            '================STDOUT=================',
+            'For 3:\n3\n',
+            'For 4:\n4\n',
+            ''
+          ].join('\n'));
+          assert(!stderr);
+          done();
+        });
+      });
+
+      it('allows for more subjects than maps', function(done){
+        exec([
+          bad,
+          '--to-env', '"FOO, BOO"',
+          '--exec', multipleMapping,
+          '--for', '"3 2 5 6, 4 7"'
+        ].join(' '),function(err, out, stderr){
+          assert(!err);
+          out.should.equal([
+            '================STDOUT=================',
+            'For 3:\n3\n',
+            'For 2:\n2\n',
+            'For 5:\n5\n',
+            'For 6:\n6\n',
+            'For 4:\n4\n',
+            'For 7:\n7\n',
+            ''
+          ].join('\n'));
+          assert(!stderr);
+          done();
+        });
       });
     });
   });
