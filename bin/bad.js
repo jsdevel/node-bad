@@ -11,11 +11,14 @@ var batch;
 //helpers
 var helpers = require('../lib/helpers');
 var absPathOf = helpers.absPathOf;
+var by = helpers.by;
 var commandInPath = helpers.commandInPath;
 var createExecTask = helpers.createExecTask;
 var fileExistsSync = helpers.fileExistsSync;
+var hr = helpers.hr;
 var merge = helpers.merge;
 var splitSpaceDelimted = helpers.splitSpaceDelimted;
+var to = helpers.to;
 
 //defaults
 var argv = [];
@@ -39,7 +42,6 @@ program
   )
   .usage('--exec curl --for "google.com linkedin.com" --argv "-s"')
   .option('--debug', 'print information for debugging')
-  .option('--verbose', 'show the output verbosley.')
   .option('-s, --silent', 'show as little as possible.')
   .option('--exec <command>', 'the command to run.  This is passed directly to spawn.')
   .option('--for <subjects>'
@@ -80,9 +82,9 @@ isDebug = !!program.debug;
 
 if(isDebug){
   console.log([
+    hr('debug'),
     'Debug info: ',
     '--silent: '+program.silent,
-    '--verbose: '+program.verbose,
     '--to-env: '+program.toEnv,
     '--argv: '+program.argv,
     '--exec: '+program.exec,
@@ -95,23 +97,27 @@ program.for.forEach(function(subject){
 });
 
 async.parallel(tasks, function(err, results){
-  var hasStdout = !!results.filter(by('stdout'));
-  var hasStderr = !!results.filter(by('stderr'));
+  var hasStdout = !!results.filter(by('stdout')).length;
+  var hasStderr = !!results.filter(by('stderr')).length;
 
-  if(hasStdout && !program.silent){
-    if(program.verbose)console.log('========STDOUT========');
+  if(hasStdout && (program.debug || !program.silent)){
+    console.log(hr('stdout'));
     results.filter(by('stdout')).forEach(function(result){
       console.log('For '+result.subject+':');
       console.log(result.stdout);
     });
   }
 
-  if(hasStderr && !program.silent){
-    if(program.verbose)console.error('========STDERR========');
+  if(hasStderr && (program.debug || !program.silent)){
+    console.error(hr('stderr'));
     results.filter(by('stderr')).forEach(function(result){
       console.error('For '+result.subject+':');
       console.error(result.stderr);
     });
+  }
+
+  if(hasStdout || hasStderr){
+    hr();
   }
 
   if(err){
@@ -122,15 +128,3 @@ async.parallel(tasks, function(err, results){
     process.exit(ERROR_WHILE_EXECUTING);
   }
 });
-
-function by(prop){
-  return function(result){
-    return !!result[prop];
-  };
-}
-
-function to(prop){
-  return function(result){
-    return result[prop];
-  };
-}

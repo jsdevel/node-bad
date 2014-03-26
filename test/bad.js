@@ -21,9 +21,14 @@ describe('bad', function(){
     ].join(' '),
     function(err, out, stderr){
       assert(!err);
-      assert(!stderr);
+      stderr.should.equal('');
       out.should.equal([
-        'For 2:\n2', 'For 3:\n3', 'For 4:\n4', 'For 5:\n5', ''
+        '================STDOUT=================\n'
+        + 'For 2:\n2',
+        'For 3:\n3',
+        'For 4:\n4',
+        'For 5:\n5',
+        ''
       ].join('\n\n'));
       done();
     });
@@ -31,7 +36,7 @@ describe('bad', function(){
 
   it('exits abnormally on bad exit codes', function(done){
     exec(bad+' --exec '+abnormalExit+' --for "2 3 4 5"', function(err, out, stderr){
-      assert(!out);
+      out.should.equal('');
       stderr.should.startWith('The following command[s] exited abnormally:');
       err.code.should.equal(2);
       done();
@@ -40,10 +45,11 @@ describe('bad', function(){
 
   it('exits normally if stderr output exists', function(done){
     exec([bad,'--exec',writeToStdErr,'--for','"2 3 4 5"'].join(' '), function(err, out, stderr){
-      assert(!out);
+      out.should.equal('');
       assert(!err);
       stderr.should.equal([
-        'For 2:\nerror 2',
+        '================STDERR=================\n'
+        + 'For 2:\nerror 2',
         'For 3:\nerror 3',
         'For 4:\nerror 4',
         'For 5:\nerror 5',
@@ -60,7 +66,7 @@ describe('bad', function(){
       '--for', '"2 3 4 5"'
     ].join(' '),
     function(err, out, stderr){
-      assert(!out);
+      out.should.equal('');
       stderr.should.equal('The --exec arg must refer to a command in your PATH or a file.\n');
       err.code.should.be.above(0);
       done();
@@ -71,12 +77,14 @@ describe('bad', function(){
     exec([bad, '--exec', printEnv, '--for', '"2 3 4 5"', '--to-env', 'FOO'].join(' '), function(err, out, stderr){
       assert(!err);
       out.should.equal([
-        'For 2:\nenv var Foo: 2',
+        '================STDOUT=================\n'
+        + 'For 2:\nenv var Foo: 2',
         'For 3:\nenv var Foo: 3',
         'For 4:\nenv var Foo: 4',
         'For 5:\nenv var Foo: 5',
         ''
       ].join('\n\n'));
+      stderr.should.equal('');
       done();
     });
   });
@@ -93,8 +101,8 @@ describe('bad', function(){
         ].join(' '),
         function(err, out, stderr){
           assert(!err);
-          assert(!out);
-          assert(!stderr);
+          out.should.equal('');
+          stderr.should.equal('');
           done();
         });
       });
@@ -110,8 +118,8 @@ describe('bad', function(){
         ].join(' '),
         function(err, out, stderr){
           assert(!err);
-          assert(!out);
-          assert(!stderr);
+          out.should.equal('');
+          stderr.should.equal('');
           done();
         });
       });
@@ -124,7 +132,6 @@ describe('bad', function(){
         bad,
         '--debug',
         '--silent',
-        '--verbose',
         '--to-env', 'FOO',
         '--argv', '"boo foo doo"',
         '--exec', printSubject,
@@ -133,13 +140,16 @@ describe('bad', function(){
       ].join(' '),function(err, out, stderr){
         assert(!err);
         out.should.equal([
-          'Debug info: ',
+          '=================DEBUG=================\n'
+          + 'Debug info: ',
           '--silent: true',
-          '--verbose: true',
           '--to-env: FOO',
           '--argv: boo,foo,doo',
           '--exec: '+printSubject,
           '--for: 3,4',
+          '================STDOUT=================',
+          'For 3:\nboo\n',
+          'For 4:\nboo\n',
           ''
         ].join('\n'));
         assert(!stderr);

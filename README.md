@@ -16,7 +16,6 @@ Options:
 
   -h, --help          output usage information
   -V, --version       output the version number
-  --verbose           show the output verbosley.
   -s, --silent        show as little as possible.
   --exec <command>    the command to run.  This is passed directly to spawn.
   --for <subjects>    a whitespace separated list of subjects.
