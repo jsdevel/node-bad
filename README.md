@@ -8,6 +8,12 @@ concurrently for a given number of subjects.
 It is general enough for just about anything that requires parallel execution,
 and it's *bad* enough to accomplish it with ease!
 
+##Why the name?
+I couldn't think of anything better so I entered "batch command" at:
+http://www.portmanteaur.com/?words=batch+command+node
+
+`bad` stood out :)
+
 ##Usage
 ````
 Usage: bad --exec curl --for "google.com linkedin.com" --argv "-s"
