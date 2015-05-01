@@ -11,6 +11,7 @@ describe('bad', function(){
   var printArgvWithEnv = path.resolve(fixtures, 'print-argv-with-env.bash');
   var printArgvWithoutEnv = path.resolve(fixtures, 'print-argv-without-env.bash');
   var printSubject = path.resolve(fixtures, 'print-subject.bash');
+  var commandWithSpace = path.resolve(fixtures, 'command\\ with\\ space.bash');
   var printEnv = path.resolve(fixtures, 'print-env-FOO.bash');
   var writeToStdErr = path.resolve(fixtures, 'write-to-stderr.bash');
 
@@ -18,6 +19,27 @@ describe('bad', function(){
     exec([
       bad,
       '--exec', printSubject,
+      '--for', '"2 3 4 5"'
+    ].join(' '),
+    function(err, out, stderr){
+      assert(!err);
+      stderr.should.equal('');
+      out.should.equal([
+        '================STDOUT=================\n'
+        + 'For 2:\n2',
+        'For 3:\n3',
+        'For 4:\n4',
+        'For 5:\n5',
+        ''
+      ].join('\n\n'));
+      done();
+    });
+  });
+
+  it('handles commands with spaces', function(done){
+    exec([
+      bad,
+      '--exec', commandWithSpace,
       '--for', '"2 3 4 5"'
     ].join(' '),
     function(err, out, stderr){
