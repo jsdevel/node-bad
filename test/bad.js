@@ -30,7 +30,7 @@ describe('bad', function(){
         'For 3:\n3',
         'For 4:\n4',
         'For 5:\n5',
-        ''
+        '\n'
       ].join('\n\n'));
       done();
     });
@@ -51,7 +51,7 @@ describe('bad', function(){
         'For 3:\n3',
         'For 4:\n4',
         'For 5:\n5',
-        ''
+        '\n'
       ].join('\n\n'));
       done();
     });
@@ -76,7 +76,7 @@ describe('bad', function(){
         'For 3:\nerror 3',
         'For 4:\nerror 4',
         'For 5:\nerror 5',
-        ''
+        '\n'
       ].join('\n\n'));
       done();
     });
@@ -105,7 +105,7 @@ describe('bad', function(){
         'For 3:\nenv var Foo: 3',
         'For 4:\nenv var Foo: 4',
         'For 5:\nenv var Foo: 5',
-        ''
+        '\n'
       ].join('\n\n'));
       stderr.should.equal('');
       done();
@@ -177,6 +177,7 @@ describe('bad', function(){
         '--argv', '"boo foo doo"',
         '--exec', printSubject,
         '--for', '"3 4"',
+        '--concurrency', '5',
         '--debug'
       ].join(' '),function(err, out, stderr){
         assert(!err);
@@ -187,10 +188,12 @@ describe('bad', function(){
           '--to-env: FOO',
           '--argv: boo,foo,doo',
           '--exec: '+printSubject,
+          '--concurrency: 5',
           '--for: 3 4',
           '================STDOUT=================',
           'For 3:\nboo\n',
           'For 4:\nboo\n',
+          '',
           ''
         ].join('\n'));
         assert(!stderr);
@@ -213,6 +216,7 @@ describe('bad', function(){
             '================STDOUT=================',
             'For 3:\n3\n',
             'For 4:\n4\n',
+            '',
             ''
           ].join('\n'));
           assert(!stderr);
@@ -236,6 +240,7 @@ describe('bad', function(){
             'For 6:\n6\n',
             'For 4:\n4\n',
             'For 7:\n7\n',
+            '',
             ''
           ].join('\n'));
           assert(!stderr);

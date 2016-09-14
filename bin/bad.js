@@ -44,6 +44,7 @@ program
   )
   .usage('--exec curl --for "google.com linkedin.com" --argv "-s"')
   .option('--debug', 'print information for debugging')
+  .option('--concurrency <amount>', 'the number of concurrent processes to spawn', Number)
   .option('-s, --silent', 'show as little as possible.')
   .option('--exec <command>', 'the command to run.  This is passed directly to spawn.')
   .option('--for <subjects>'
@@ -84,6 +85,10 @@ if(!fileExistsSync(program.exec) && !commandInPath(program.exec)){
 if(fileExistsSync(program.exec))execArg = absPathOf(program.exec);
 else execArg = program.exec;
 
+if (!program.concurrency) {
+  program.concurrency = 1;
+}
+
 isDebug = !!program.debug;
 
 if(isDebug){
@@ -94,52 +99,86 @@ if(isDebug){
     '--to-env: '+program.toEnv,
     '--argv: '+program.argv,
     '--exec: '+program.exec,
+    '--concurrency: '+program.concurrency,
     '--for: '+program.for
   ].join('\n'));
 }
 
-createExecTaskContexts(program).forEach(function(context){
-  tasks.push(createExecTask.bind(null, execArg, program.argv, context));
-});
 
-async.parallel(tasks, function(err, results){
+var results = [];
+var queue = async.queue(function(task, cb) {
+  task(function(err, result) {
+    results.push(result);
+    cb();
+  });
+}, program.concurrency);
+
+queue.drain = function() {
   var hasStdout = !!results.filter(by('stdout')).length;
   var hasStderr = !!results.filter(by('stderr')).length;
 
+  var stdout = '';
+
   if(program.showTime){
-    console.log(hr('time stats'));
-    results.forEach(function(result){
-      console.log('For '+result.subject+':');
-      console.log('  '+result.time+'ms');
-    });
-    console.log('Total Time:\n  '+(Date.now()-startTime)+'ms');
+    stdout += results.reduce(function(output, result){
+        return output + [
+          'For ' + result.subject + ':',
+          '  '+result.time+'ms'
+        ].join('\n') + '\n';
+      }, hr('time stats') + '\n') +
+      'Total Time:\n  ' + (Date.now()-startTime) + 'ms' + '\n';
   }
 
   if(hasStdout && (program.debug || !program.silent)){
-    console.log(hr('stdout'));
-    results.filter(by('stdout')).forEach(function(result){
-      console.log('For '+result.subject+':');
-      console.log(result.stdout);
-    });
+    stdout += results.filter(by('stdout')).reduce(function(output, result){
+      return output + [
+        'For ' + result.subject + ':',
+        result.stdout
+      ].join('\n') + '\n';
+    }, hr('stdout') + '\n');
   }
+
+  var stderr = '';
 
   if(hasStderr && (program.debug || !program.silent)){
-    console.error(hr('stderr'));
-    results.filter(by('stderr')).forEach(function(result){
-      console.error('For '+result.subject+':');
-      console.error(result.stderr);
-    });
+    stderr += results.filter(by('stderr')).reduce(function(output, result){
+        return output + [
+          'For '+result.subject+':',
+          result.stderr
+        ].join('\n') + '\n';
+      }, hr('stderr') + '\n');
   }
 
-  if(hasStdout || hasStderr){
-    hr();
+  var erroredResults = results.filter(by('err'));
+
+  if(erroredResults.length){
+    stderr += erroredResults.reduce(function(output, result){
+      return output + '\n' + result.subject;
+    }, 'The following command[s] exited abnormally:');
   }
 
-  if(err){
-    console.error('The following command[s] exited abnormally:');
-    results.filter(by('err')).forEach(function(result){
-      console.error(result.subject);
-    });
-    process.exit(ERROR_WHILE_EXECUTING);
-  }
+  async.series([
+    function printStdout(cb) {
+      if (stdout) {
+        console.log(stdout);
+        return setTimeout(cb, 100);
+      }
+      cb();
+    },
+    function printStderr(cb) {
+      if (stderr) {
+        console.error(stderr);
+        return setTimeout(cb, 100);
+      }
+      cb();
+    }
+  ], function() {
+    if (erroredResults.length) {
+      process.exit(ERROR_WHILE_EXECUTING);
+    }
+  });
+};
+
+createExecTaskContexts(program).forEach(function(context){
+  queue.push(createExecTask.bind(null, execArg, program.argv, context));
 });
